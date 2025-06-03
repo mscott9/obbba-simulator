@@ -1,0 +1,96 @@
+
+import streamlit as st
+import matplotlib.pyplot as plt
+
+st.set_page_config(page_title="OBBBA Budget Simulator", layout="centered")
+st.title("🇺🇸 One Big Beautiful Bill – Budget Simulator")
+
+st.markdown("Try to balance the bill by adjusting growth, tax capture, and spending items.")
+
+# Set session state for preset memory
+if "preset" not in st.session_state:
+    st.session_state.preset = None
+
+# Sidebar preset buttons
+st.sidebar.header("Presets")
+if st.sidebar.button("Use Trump Plan Preset"):
+    st.session_state.preset = "trump"
+if st.sidebar.button("Use Balanced Budget Preset"):
+    st.session_state.preset = "balanced"
+
+# User inputs
+if st.session_state.preset == "trump":
+    gdp_growth = 3.0
+    revenue_capture_rate = 18.0
+    social_cuts = 0.4
+    new_defense_spend = 0.22
+    tax_credit_expansion = 0.4
+elif st.session_state.preset == "balanced":
+    gdp_growth = 2.5
+    revenue_capture_rate = 20.0
+    social_cuts = 1.2
+    new_defense_spend = 0.1
+    tax_credit_expansion = 0.2
+else:
+    gdp_growth = st.slider("Annual GDP Growth Rate (%)", 0.0, 7.0, 2.0, step=0.1)
+    revenue_capture_rate = st.slider("Tax Revenue Capture (% of new GDP)", 10.0, 25.0, 18.0, step=0.1)
+    social_cuts = st.slider("Spending Cuts from Social Programs ($ Trillions)", 0.0, 2.0, 0.5, step=0.1)
+    new_defense_spend = st.slider("Defense & Border Spending ($ Trillions)", 0.0, 0.5, 0.22, step=0.01)
+    tax_credit_expansion = st.slider("Child Tax Credit & MAGA Savings Expansion ($ Trillions)", 0.0, 1.0, 0.4, step=0.05)
+
+# Constants
+TAX_CUT_COST = 2.7  # Trillions
+GDP_BASE = 30.0     # Trillions
+
+# Calculations
+gdp_multiplier = ((1 + gdp_growth / 100) ** 10) - 1
+added_gdp = GDP_BASE * gdp_multiplier
+revenue_from_growth = added_gdp * (revenue_capture_rate / 100)
+
+# Total cost and offsets
+total_cost = TAX_CUT_COST + new_defense_spend + tax_credit_expansion
+total_savings = social_cuts + (revenue_from_growth / 1e12)
+net_deficit = total_cost - total_savings
+
+# Output result
+st.subheader("📊 10-Year Budget Result")
+if net_deficit > 0:
+    st.error(f"🚨 Estimated Deficit: ${net_deficit:.2f} Trillion")
+elif net_deficit < 0:
+    st.success(f"✅ Estimated Surplus: ${-net_deficit:.2f} Trillion")
+else:
+    st.success("🎯 Balanced Budget Achieved!")
+
+# Breakdown
+st.markdown("### 🧾 Breakdown")
+st.markdown(f"- **Tax Cuts Extended**: ${TAX_CUT_COST:.2f}T")
+st.markdown(f"- **Defense & Border**: ${new_defense_spend:.2f}T")
+st.markdown(f"- **Tax Credit Expansion**: ${tax_credit_expansion:.2f}T")
+st.markdown(f"- **Social Program Cuts**: ${social_cuts:.2f}T")
+st.markdown(f"- **Revenue from Growth**: ${revenue_from_growth / 1e12:.2f}T")
+
+# Bar Chart
+st.markdown("### 📊 Bar Chart: Spending vs Revenue")
+fig1, ax1 = plt.subplots()
+labels = ['Total Costs', 'Total Offsets']
+values = [total_cost, total_savings]
+bar_colors = ['#FF6961', '#77DD77']
+ax1.bar(labels, values, color=bar_colors)
+ax1.set_ylabel("Amount (Trillions $)")
+ax1.set_title("Costs vs Offsets")
+st.pyplot(fig1)
+
+# Line Chart
+st.markdown("### 📈 Cumulative Deficit Over Time")
+years = list(range(1, 11))
+annual_cost = total_cost / 10
+annual_savings = total_savings / 10
+cumulative_deficit = [round((annual_cost - annual_savings) * year, 2) for year in years]
+
+fig2, ax2 = plt.subplots()
+ax2.plot(years, cumulative_deficit, marker='o')
+ax2.axhline(0, color='gray', linestyle='--')
+ax2.set_xlabel("Year")
+ax2.set_ylabel("Cumulative Deficit (Trillions $)")
+ax2.set_title("10-Year Cumulative Deficit Projection")
+st.pyplot(fig2)
