@@ -56,3 +56,32 @@ st.markdown(f"- **Defense & Border**: ${new_defense_spend:.2f}T")
 st.markdown(f"- **Tax Credit Expansion**: ${tax_credit_expansion:.2f}T")
 st.markdown(f"- **Social Program Cuts**: ${social_cuts:.2f}T")
 st.markdown(f"- **Revenue from Growth**: ${revenue_from_growth / 1e12:.2f}T")
+
+# 📊 Bar Chart: Spending vs Revenue
+import matplotlib.pyplot as plt
+
+st.markdown("### 📊 Bar Chart: Spending vs Revenue")
+fig1, ax1 = plt.subplots()
+labels = ['Total Costs', 'Total Offsets']
+values = [total_cost, total_savings]
+bar_colors = ['#FF6961', '#77DD77']
+ax1.bar(labels, values, color=bar_colors)
+ax1.set_ylabel("Amount (Trillions $)")
+ax1.set_title("Costs vs Offsets")
+st.pyplot(fig1)
+
+# 📈 Line Chart: Cumulative Deficit Over 10 Years
+st.markdown("### 📈 Cumulative Deficit Over Time")
+
+years = list(range(1, 11))
+annual_cost = total_cost / 10
+annual_savings = total_savings / 10
+cumulative_deficit = [round((annual_cost - annual_savings) * year, 2) for year in years]
+
+fig2, ax2 = plt.subplots()
+ax2.plot(years, cumulative_deficit, marker='o')
+ax2.axhline(0, color='gray', linestyle='--')
+ax2.set_xlabel("Year")
+ax2.set_ylabel("Cumulative Deficit (Trillions $)")
+ax2.set_title("10-Year Cumulative Deficit Projection")
+st.pyplot(fig2)
